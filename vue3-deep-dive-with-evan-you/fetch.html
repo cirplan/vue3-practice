@@ -1,0 +1,71 @@
+<script src="https://unpkg.com/vue@3.2.36/dist/vue.global.js"></script>
+
+<div id="app"></div>
+
+<script>
+  const { createApp, watchEffect, ref } = Vue
+
+  function usePost(getId) {
+    return useFetch(() => `https://jsonplaceholder.typicode.com/todos/${getId()}`)
+  }
+
+  function useFetch(getUrl) {
+    const data = ref(null)
+    const error = ref(null)
+    const isPending = ref(true)
+
+    watchEffect(() => {
+      isPending.value = true
+      data.value = null
+      error.value = null
+      fetch(getUrl())
+        .then((res) => res.json())
+        .then((_data) => {
+          data.value = _data
+          isPending.value = false
+        })
+        .catch((err) => {
+          error.value = err
+          isPending.value = false
+        })
+    })
+
+    return {
+      data,
+      error,
+      isPending,
+    }
+  }
+
+  const Post = {
+    template: `
+    <div v-if="isPending">loading...</div>
+    <div v-else-if="data">{{ data }}</div>
+    <div v-else-if="error">something went wrong: {{ error.message }}</div>
+  `,
+    props: ['id'],
+    setup(props) {
+      const { data, error, isPending } = usePost(() => props.id)
+      return {
+        data,
+        error,
+        isPending,
+      }
+    },
+  }
+
+  const App = {
+    components: { Post },
+    data() {
+      return {
+        id: 1,
+      }
+    },
+    template: `
+    <button @click="id++">change ID</button>
+    <Post :id="id" />
+   `,
+  }
+
+  createApp(App).mount('#app')
+</script>

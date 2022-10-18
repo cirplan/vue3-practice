@@ -1,0 +1,41 @@
+<script src="https://unpkg.com/vue@3.2.36/dist/vue.global.js"></script>
+
+<div id="app"></div>
+
+<script>
+  const { createApp, ref, onMounted, onUnmounted } = Vue
+
+  function useMouse() {
+    const x = ref(0)
+    const y = ref(0)
+
+    const update = e => {
+      x.value = e.pageX
+      y.value = e.pageY
+    }
+
+    onMounted(() => {
+      window.addEventListener('mousemove', update)
+    })
+
+    onUnmounted(() => {
+      window.removeEventListener('mousemove', update)
+    })
+
+    return { x, y }
+  }
+
+  const App = {
+    setup() {
+      const foo = ref('foo')
+      const {x, y} = useMouse()
+      return {
+        x,
+        y
+      }
+    },
+    template: `{{ x }} {{ y }}`
+  }
+
+  createApp(App).mount('#app')
+</script>
